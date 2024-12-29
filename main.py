@@ -35,13 +35,20 @@ def background_task(input_email: str):
             email = input_email
             Cookie = "csrftoken={}"
             url1 = "https://www.serv00.com/offer/create_new_account"
+            headers = {
+                "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
+            }
             captcha_url = "https://www.serv00.com/captcha/image/{}/"
-            header2 = {"Cookie": Cookie}
+            header2 = {
+                "Cookie": Cookie,
+                "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
+            }
             url3 = "https://www.serv00.com/offer/create_new_account.json"
             header3 = {
                 "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
                 "Referer": "https://www.serv00.com/offer/create_new_account",
-                "Cookie": Cookie
+                "Cookie": Cookie,
+                "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
             }
             _ = usernames.pop()
             first_name = _["name"]
@@ -50,7 +57,7 @@ def background_task(input_email: str):
             logger.info(f"{email} {first_name} {last_name} {username}")
             with requests.Session() as session:
                 logger.info("获取网页信息")
-                resp = session.get(url=url1, verify=False)
+                resp = session.get(url=url1, headers=headers, verify=False)
                 if resp.status_code != 200:
                     print(resp.status_code)
                     return
@@ -74,7 +81,7 @@ def background_task(input_email: str):
                     else:
                         logger.warning("\033[4m验证码识别失败,正在重试...\033[0m")
                         retry += 1
-                        if retry > 20: # 此处修改重试次数，默认20次.
+                        if retry > 200: # 此处修改重试次数，默认200次.
                             print("验证码识别失败次数过多,退出重试.")
                             return
                         continue
