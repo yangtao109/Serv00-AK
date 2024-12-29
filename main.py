@@ -31,25 +31,21 @@ def start_task(input_email: str):
 def background_task(input_email: str):
     while True:
         try:
-            usernames = get_user_name()
-            email = input_email
+            User_Agent = generate_random_username()
             Cookie = "csrftoken={}"
             url1 = "https://www.serv00.com/offer/create_new_account"
-            headers = {
-                "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
-            }
+            headers = {f"User-Agent": User_Agent}
             captcha_url = "https://www.serv00.com/captcha/image/{}/"
-            header2 = {
-                "Cookie": Cookie,
-                "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
-            }
+            header2 = {"Cookie": Cookie, "User-Agent": User_Agent}
             url3 = "https://www.serv00.com/offer/create_new_account.json"
             header3 = {
                 "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
                 "Referer": "https://www.serv00.com/offer/create_new_account",
                 "Cookie": Cookie,
-                "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
+                "User-Agent": User_Agent
             }
+            email = input_email
+            usernames = get_user_name()
             _ = usernames.pop()
             first_name = _["name"]
             last_name = _["surname"]
