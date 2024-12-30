@@ -68,7 +68,7 @@ def start_task(input_email: str):
     id_retry = 1
     while True:
         try:
-            User_Agent = f'Mozilla/5.0 (Windows NT 10.0; Win64; x64){generate_random_username()}'
+            User_Agent = ''.join(random.choices(string.digits, k=24))
             Cookie = "csrftoken={}"
             url1 = "https://www.serv00.com/offer/create_new_account"
             headers = {f"User-Agent": User_Agent}
