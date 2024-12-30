@@ -1,3 +1,4 @@
+loguru
 ddddocr
 requests
-loguru
+python-telegram-bot
