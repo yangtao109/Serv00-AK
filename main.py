@@ -48,7 +48,7 @@ def generate_random_username():
     characters = string.ascii_letters
     random_string = ''.join(random.choice(characters) for _ in range(length))
     return random_string
-def random_headers():
+def generate_random_headers():
     return {
         "Accept-Language": random.choice(["en-US,en;q=0.9", "ja-JP,ja;q=0.9", "fr-FR,fr;q=0.9", "de-DE,de;q=0.9", "es-ES,es;q=0.9"]),
         "User-Agent": Headers(os="random").generate()["User-Agent"],
@@ -56,7 +56,7 @@ def random_headers():
         "X-Network-Type": random.choice(["Wi-Fi", "4G", "5G"]),
         "X-Timezone": random.choice(pytz.all_timezones)
     }
-def random_data():
+def generate_random_data():
     screen_resolution = f"{random.choice([1280, 1366, 1440, 1600, 1920])}x{random.choice([720, 768, 900, 1080, 1200])}"
     fonts = ["Arial", "Times New Roman", "Verdana", "Helvetica", "Georgia", "Courier New"]
     webgl_info = {
@@ -103,8 +103,8 @@ def start_task(input_email: str):
     id_retry = 1
     while True:
         try:
-            random_headers = random_headers()
-            random_data = random_data()
+            random_headers = generate_random_headers()
+            random_data = generate_random_data()
             User_Agent = random_headers["User-Agent"]
             Cookie = "csrftoken={}"
             url1 = "https://www.serv00.com/offer/create_new_account"
