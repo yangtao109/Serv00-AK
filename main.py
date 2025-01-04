@@ -2,19 +2,23 @@ import os
 import re
 import json
 import time
+import pytz
 import string
 import random
 import ddddocr
 import inspect
+import hashlib
 import asyncio
 import requests
+from faker import Faker
 from telegram import Bot
 from loguru import logger
 from datetime import datetime
 from urllib.parse import quote
+from fake_headers import Headers
+from urllib.parse import urlencode
 from requests.exceptions import JSONDecodeError
 os.makedirs("static", exist_ok=True)
-cache = {}
 global input_token, input_chatid
 config_file = 'static/config.json'
 def get_input_prompt():
@@ -44,6 +48,37 @@ def generate_random_username():
     characters = string.ascii_letters
     random_string = ''.join(random.choice(characters) for _ in range(length))
     return random_string
+def random_headers():
+    return {
+        "Accept-Language": random.choice(["en-US,en;q=0.9", "ja-JP,ja;q=0.9", "fr-FR,fr;q=0.9", "de-DE,de;q=0.9", "es-ES,es;q=0.9"]),
+        "User-Agent": Headers(os="random").generate()["User-Agent"],
+        "X-Forwarded-For": Faker().ipv4(),
+        "X-Network-Type": random.choice(["Wi-Fi", "4G", "5G"]),
+        "X-Timezone": random.choice(pytz.all_timezones)
+    }
+def random_data():
+    screen_resolution = f"{random.choice([1280, 1366, 1440, 1600, 1920])}x{random.choice([720, 768, 900, 1080, 1200])}"
+    fonts = ["Arial", "Times New Roman", "Verdana", "Helvetica", "Georgia", "Courier New"]
+    webgl_info = {
+        "vendor": random.choice(["Google Inc. (NVIDIA)", "Intel Inc.", "AMD Inc."]),
+        "renderer": random.choice([
+            "ANGLE (NVIDIA, NVIDIA GeForce GTX 1080 Direct3D11 vs_5_0 ps_5_0, D3D11)", "Intel(R) HD Graphics 630",
+            "AMD Radeon RX 580", "NVIDIA GeForce RTX 3090", "Intel(R) Iris Plus Graphics 655",
+            "AMD Radeon RX 5700 XT", "NVIDIA GeForce GTX 1660 Ti",
+            "Intel(R) UHD Graphics 630 (Coffeelake)", "AMD Radeon RX 5600 XT",
+            "NVIDIA Quadro RTX 8000", "Intel(R) HD Graphics 520",
+            "AMD Radeon RX 480", "NVIDIA GeForce GTX 1050 Ti", "Intel(R) UHD Graphics 620", "NVIDIA GeForce RTX 3080", "AMD Radeon Vega 64",
+            "NVIDIA Titan V", "AMD Radeon RX 6800 XT", "NVIDIA GeForce GTX 980 Ti", "Intel(R) Iris Xe Graphics"
+        ])
+    }
+    return {
+        "screen_resolution": screen_resolution,
+        "color_depth": random.choice([16, 24, 32]),
+        "fonts": random.sample(fonts, k=random.randint(3, len(fonts))),
+        "webgl_info": webgl_info,
+        "canvas_fingerprint": hashlib.md5(os.urandom(16)).hexdigest(),
+        "plugins": random.sample(["Chrome PDF Viewer", "Google Docs Offline", "AdBlock", "Grammarly", "LastPass"], k=random.randint(2, 5))
+    }
 def start_userconfig():
     if os.path.exists(config_file):
         try:
@@ -68,18 +103,21 @@ def start_task(input_email: str):
     id_retry = 1
     while True:
         try:
-            User_Agent = ''.join(random.choices(string.digits, k=24))
+            random_headers = random_headers()
+            random_data = random_data()
+            User_Agent = random_headers["User-Agent"]
             Cookie = "csrftoken={}"
             url1 = "https://www.serv00.com/offer/create_new_account"
-            headers = {f"User-Agent": User_Agent}
+            headers = {"User-Agent": User_Agent, **random_headers}
             captcha_url = "https://www.serv00.com/captcha/image/{}/"
-            header2 = {"Cookie": Cookie, "User-Agent": User_Agent}
+            header2 = {"Cookie": Cookie, "User-Agent": User_Agent, **random_headers}
             url3 = "https://www.serv00.com/offer/create_new_account.json"
             header3 = {
                 "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
                 "Referer": "https://www.serv00.com/offer/create_new_account",
                 "Cookie": Cookie,
-                "User-Agent": User_Agent
+                "User-Agent": User_Agent,
+                **random_headers
             }
             email = input_email
             usernames = get_user_name()
@@ -111,11 +149,11 @@ def start_task(input_email: str):
                     else:
                         logger.warning("\033[7m验证码识别失败,正在重试...\033[0m")
                         captcha_retry += 1
-                        if captcha_retry > 200: # 此处修改重试次数，默认200次.
+                        if captcha_retry > 200:
                             logger.error("验证码识别失败次数过多,退出重试.")
                             return
                         continue
-                    data = f"csrfmiddlewaretoken={csrftoken}&first_name={first_name}&last_name={last_name}&username={username}&email={quote(email)}&captcha_0={captcha_0}&captcha_1={captcha_1}&question=free&tos=on"
+                    data = f"csrfmiddlewaretoken={csrftoken}&first_name={first_name}&last_name={last_name}&username={username}&email={quote(email)}&captcha_0={captcha_0}&captcha_1={captcha_1}&question=free&tos=on{urlencode(random_data)}"
                     time.sleep(random.uniform(0.5, 1.2))
                     logger.info("请求信息")
                     resp = session.post(url=url3, headers=dict(header3, **{"Cookie": header3["Cookie"].format(csrftoken)}), data=data, verify=False)
@@ -150,7 +188,7 @@ def start_task(input_email: str):
                         break
                     if content.get("email") and content["email"][0] == "Enter a valid email address.":
                         logger.error("\033[7m无效的邮箱,请重新输入.\033[0m")
-                        asyncio.run(send_message(f"{input_email} 无效的邮箱,请重新输入."))
+                        asyncio.run(send_message(f"Error!\nEmail: {input_email}\nMessage: 无效的邮箱,请重新输入."))
                         time.sleep(random.uniform(0.5, 1.2))
                         return
                     else:
@@ -159,8 +197,6 @@ def start_task(input_email: str):
         except Exception as e:
             logger.error(f"\033[7m发生异常:{e},正在重新开始任务...\033[0m")
             time.sleep(random.uniform(0.5, 1.2))
-        if input_email in cache:
-            del cache[input_email]
 if __name__ == "__main__":
     First_Run = True
     while True:
