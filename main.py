@@ -149,8 +149,9 @@ def start_task(input_email: str):
                     else:
                         logger.warning("\033[7m验证码识别失败,正在重试...\033[0m")
                         captcha_retry += 1
-                        if captcha_retry > 200:
+                        if captcha_retry > 20:
                             logger.error("验证码识别失败次数过多,退出重试.")
+                            start_task(input_email)
                             return
                         continue
                     data = f"csrfmiddlewaretoken={csrftoken}&first_name={first_name}&last_name={last_name}&username={username}&email={quote(email)}&captcha_0={captcha_0}&captcha_1={captcha_1}&question=free&tos=on{urlencode(random_data)}"
